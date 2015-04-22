@@ -51,6 +51,8 @@ var define, requireModule, require, requirejs;
   }
 
   define = function(name, deps, callback) {
+    if (isAlien(name)) return dojoDefine.apply(this, arguments);
+
     if (arguments.length < 2) {
       unsupportedModule(arguments.length);
     }
@@ -117,6 +119,8 @@ var define, requireModule, require, requirejs;
     throw new Error('Could not find module ' + name);
   }
   requirejs = require = requireModule = function(name) {
+    if (isAlien(name)) return dojoRequire.apply(this, arguments);
+
     var mod = registry[name];
 
 
@@ -191,4 +195,18 @@ var define, requireModule, require, requirejs;
     requirejs.entries = requirejs._eak_seen = registry = {};
     seen = state = {};
   };
+
+  /* Check if require/define is coming from Dojo */
+  var regex = /(^.*?)\//;
+  function isAlien(name) {
+    var v;
+    if (typeof name === 'object') {
+      v = true; // always?
+    } else if (typeof name === "string") {
+      var match = name.match(regex);
+      v = match && match[1] && dojoRequire.packs[match[1]];
+    }
+
+    return !!v;
+  }
 })();
